@@ -27,6 +27,7 @@
     "build:cjs": "tsc --project tsconfig.prod.cjs.json",
     "build:umd": "rollup --config rollup.config.js",
     "build:types": "tsc --project tsconfig.prod.types.json",
+    "build:full": "npm run build:clean && npm run build:es2015 && npm run build:esm5 && npm run build:cjs && npm run build:umd && npm run build:types && cp package.json build/package.json",
     "prettier:fix": "prettier --write \"**/*.{ts,md}\"",
     "prettier:check": "prettier --check \"**/*.{ts,md}\"",
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts src/",
