@@ -267,8 +267,8 @@ export class ValidationExecutor {
           if (isPromise(validatedValue)) {
             const promise = validatedValue.then(isValid => {
               if (!isValid) {
-                const [type, message] = this.createValidationError(object, value, metadata, customConstraintMetadata);
-                error.constraints[type] = message;
+                const [type, message, detail] = this.createValidationError(object, value, metadata, customConstraintMetadata);
+                error.constraints[type] = { message, detail };
                 if (metadata.context) {
                   if (!error.contexts) {
                     error.contexts = {};
@@ -280,8 +280,8 @@ export class ValidationExecutor {
             this.awaitingPromises.push(promise);
           } else {
             if (!validatedValue) {
-              const [type, message] = this.createValidationError(object, value, metadata, customConstraintMetadata);
-              error.constraints[type] = message;
+              const [type, message, detail] = this.createValidationError(object, value, metadata, customConstraintMetadata);
+              error.constraints[type] = { message, detail };
             }
           }
 
@@ -307,8 +307,8 @@ export class ValidationExecutor {
             (flatValidatedValues: boolean[]) => {
               const validationResult = flatValidatedValues.every((isValid: boolean) => isValid);
               if (!validationResult) {
-                const [type, message] = this.createValidationError(object, value, metadata, customConstraintMetadata);
-                error.constraints[type] = message;
+                const [type, message, detail] = this.createValidationError(object, value, metadata, customConstraintMetadata);
+                error.constraints[type] = { message, detail };
                 if (metadata.context) {
                   if (!error.contexts) {
                     error.contexts = {};
@@ -326,8 +326,8 @@ export class ValidationExecutor {
 
         const validationResult = validatedSubValues.every((isValid: boolean) => isValid);
         if (!validationResult) {
-          const [type, message] = this.createValidationError(object, value, metadata, customConstraintMetadata);
-          error.constraints[type] = message;
+          const [type, message, detail] = this.createValidationError(object, value, metadata, customConstraintMetadata);
+          error.constraints[type] = { message, detail };
         }
       });
     });
@@ -357,7 +357,7 @@ export class ValidationExecutor {
         error.value = value;
         error.property = metadata.propertyName;
         error.target = metadata.target as object;
-        const [type, message] = this.createValidationError(metadata.target as object, value, metadata);
+        const [type, message, detail] = this.createValidationError(metadata.target as object, value, metadata);
         error.constraints = {
           [type]: message,
         };
@@ -393,7 +393,7 @@ export class ValidationExecutor {
     value: any,
     metadata: ValidationMetadata,
     customValidatorMetadata?: ConstraintMetadata
-  ): [string, string] {
+  ): [string, string, any] {
     const targetName = object.constructor ? (object.constructor as any).name : undefined;
     const type = this.getConstraintType(metadata, customValidatorMetadata);
     const validationArguments: ValidationArguments = {
@@ -404,7 +404,7 @@ export class ValidationExecutor {
       constraints: metadata.constraints,
     };
 
-    let message = metadata.message || '';
+    let message: any = metadata.message || '';
     if (
       !metadata.message &&
       (!this.validatorOptions || (this.validatorOptions && !this.validatorOptions.dismissDefaultMessages))
@@ -414,8 +414,8 @@ export class ValidationExecutor {
       }
     }
 
-    const messageString = ValidationUtils.replaceMessageSpecialTokens(message, validationArguments);
-    return [type, messageString];
+    const detail = ValidationUtils.replaceMessageSpecialTokens(message, validationArguments);
+    return [type, message, detail];
   }
 
   private getConstraintType(metadata: ValidationMetadata, customValidatorMetadata?: ConstraintMetadata): string {
